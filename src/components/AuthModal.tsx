@@ -73,10 +73,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ initialMode = 'signin' }) 
       let msg = err.message || 'Authentication error';
       if (msg.includes('auth/invalid-credential') || msg.includes('auth/wrong-password')) {
         msg = 'Invalid email or password. Please verify your credentials.';
+      } else if (msg.includes('auth/user-not-found')) {
+        msg = 'No account found with this email. Please create a new account.';
       } else if (msg.includes('auth/email-already-in-use')) {
         msg = 'This email is already registered. Please sign in instead.';
       } else if (msg.includes('auth/weak-password')) {
         msg = 'Password is too weak. Please use at least 6 characters.';
+      } else if (msg.includes('auth/invalid-email')) {
+        msg = 'Please enter a valid email address.';
+      } else if (msg.includes('auth/network-request-failed')) {
+        msg = 'Network connection error. Please check your internet connection.';
+      } else if (msg.includes('auth/unauthorized-domain')) {
+        msg = 'Domain authorization pending in Firebase. Please ensure "quiz-earning.netlify.app" is saved under Firebase Authentication → Settings → Authorized domains.';
       }
       setError(msg);
     } finally {
@@ -91,7 +99,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ initialMode = 'signin' }) 
       await loginWithGoogle();
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'Google Sign-in failed. Please try again or use email/password.');
+      let msg = err.message || 'Google Sign-in failed. Please try again.';
+      if (msg.includes('auth/popup-closed-by-user')) {
+        msg = 'Google Sign-in popup was closed before completing.';
+      } else if (msg.includes('auth/unauthorized-domain')) {
+        msg = 'Google Sign-in: Domain authorization pending in Firebase. Please verify "quiz-earning.netlify.app" under Firebase Authentication → Settings → Authorized domains.';
+      } else if (msg.includes('auth/network-request-failed')) {
+        msg = 'Network connection error during Google Sign-in.';
+      }
+      setError(msg);
     } finally {
       setLoading(false);
     }
