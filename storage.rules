@@ -1,0 +1,11 @@
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && (
+        request.auth.token.email == 'sramamando@gmail.com' ||
+        request.auth.token.email == 'ADMIN_EMAIL_HERE'
+      );
+    }
+  }
+}

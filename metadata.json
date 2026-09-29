@@ -1,0 +1,6 @@
+{
+  "name": "Quiz Earning Task",
+  "description": "Premium mobile-first Quiz Earning and Task app with real wallet, referrals, and secure withdrawal system.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

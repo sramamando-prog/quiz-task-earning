@@ -1,0 +1,107 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Check if authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Check if user is accessing their own document
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Check if request is from authorized admin
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.email == 'sramamando@gmail.com' ||
+        request.auth.token.email == 'ADMIN_EMAIL_HERE' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true)
+      );
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      // On creation, a user can write their initial profile
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      // Allow updates if owner or admin
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Quiz Questions Collection
+    match /quizQuestions/{questionId} {
+      // Any authenticated user can read active quiz questions
+      allow read: if isAuthenticated();
+      // Only admin can write, create, update, delete
+      allow write: if isAdmin();
+    }
+
+    // Quiz Attempts Collection
+    match /quizAttempts/{attemptId} {
+      // User can read their own attempts, admin can read all
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      // User can create their attempt
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    // Wallet Transactions Collection
+    match /walletTransactions/{transactionId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && (request.resource.data.userId == request.auth.uid || isAdmin());
+      allow update, delete: if isAdmin();
+    }
+
+    // Withdrawals Collection
+    match /withdrawals/{withdrawalId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      // User can only create a pending withdrawal with their own uid
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      // Only admin can change status or update withdrawal
+      allow update, delete: if isAdmin();
+    }
+
+    // Deposits Collection
+    match /deposits/{depositId} {
+      // Authenticated users can read deposits (required for duplicate UTR checking across submissions); Admin can read all
+      allow read: if isAuthenticated();
+      // User can create their deposit request with their own userId
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      // User CANNOT update deposit status or amounts; Only admin can update or delete
+      allow update, delete: if isAdmin();
+    }
+
+    // Referrals Collection
+    match /referrals/{referralId} {
+      allow read: if isAuthenticated() && (
+        resource.data.referrerUid == request.auth.uid || 
+        resource.data.referredUid == request.auth.uid || 
+        isAdmin()
+      );
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdmin();
+    }
+
+    // Tasks Collection
+    match /tasks/{taskId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // Task Completions Collection
+    match /taskCompletions/{completionId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    // Admin Audit Logs Collection
+    match /adminAuditLogs/{logId} {
+      allow read, write: if isAdmin();
+    }
+  }
+}
