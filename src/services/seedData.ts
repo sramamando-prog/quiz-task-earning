@@ -4,95 +4,30 @@ import { QuizQuestion, EarningTask } from '../types';
 
 export const INITIAL_QUESTIONS: Omit<QuizQuestion, 'id'>[] = [
   {
-    question: 'What is the national currency of India?',
+    question: 'What is the national currency of India? [Sample Question]',
     optionA: 'Indian Dollar',
     optionB: 'Indian Rupee (INR)',
     optionC: 'Dinar',
     optionD: 'Euro',
     correctAnswer: 'B',
-    explanation: 'The official currency of India is the Indian Rupee (₹/INR).',
-    category: 'Finance & General',
+    explanation: '[Sample/Demo Question] The official currency of India is the Indian Rupee (₹/INR).',
+    category: 'Demo Sample',
     difficulty: 'Easy',
     status: 'active',
-    createdAt: new Date().toISOString()
+    createdAt: '2025-01-01T00:00:00.000Z'
   },
   {
-    question: 'Which is the largest planet in our Solar System?',
-    optionA: 'Earth',
-    optionB: 'Mars',
-    optionC: 'Jupiter',
-    optionD: 'Saturn',
-    correctAnswer: 'C',
-    explanation: 'Jupiter is by far the largest planet, having more mass than all other planets combined.',
-    category: 'Science',
-    difficulty: 'Easy',
-    status: 'active',
-    createdAt: new Date().toISOString()
-  },
-  {
-    question: 'What is the full form of UPI in online payments?',
+    question: 'What is the full form of UPI in online payments? [Sample Question]',
     optionA: 'Unified Payments Interface',
     optionB: 'Universal Public Internet',
     optionC: 'United People India',
     optionD: 'Unique Pay Identification',
     correctAnswer: 'A',
-    explanation: 'UPI stands for Unified Payments Interface, developed by NPCI.',
-    category: 'Technology & Banking',
+    explanation: '[Sample/Demo Question] UPI stands for Unified Payments Interface, developed by NPCI.',
+    category: 'Demo Sample',
     difficulty: 'Easy',
     status: 'active',
-    createdAt: new Date().toISOString()
-  },
-  {
-    question: 'Which Indian city is known as the "Silicon Valley of India"?',
-    optionA: 'Mumbai',
-    optionB: 'Hyderabad',
-    optionC: 'Bengaluru',
-    optionD: 'Pune',
-    correctAnswer: 'C',
-    explanation: 'Bengaluru is renowned as the Silicon Valley of India due to its tech ecosystem.',
-    category: 'General Knowledge',
-    difficulty: 'Easy',
-    status: 'active',
-    createdAt: new Date().toISOString()
-  },
-  {
-    question: 'How many bytes are there in one Kilobyte (KB)?',
-    optionA: '512 bytes',
-    optionB: '1000 bytes',
-    optionC: '1024 bytes',
-    optionD: '2048 bytes',
-    correctAnswer: 'C',
-    explanation: 'In binary measurement, 1 Kilobyte equals 1024 bytes.',
-    category: 'Computers',
-    difficulty: 'Medium',
-    status: 'active',
-    createdAt: new Date().toISOString()
-  },
-  {
-    question: 'Who is known as the Father of the Indian Constitution?',
-    optionA: 'Mahatma Gandhi',
-    optionB: 'Dr. B. R. Ambedkar',
-    optionC: 'Jawaharlal Nehru',
-    optionD: 'Sardar Vallabhbhai Patel',
-    correctAnswer: 'B',
-    explanation: 'Dr. Bhimrao Ramji Ambedkar served as the chairman of the Drafting Committee.',
-    category: 'History',
-    difficulty: 'Easy',
-    status: 'active',
-    createdAt: new Date().toISOString()
-  },
-  {
-    question: 'Which gas is most abundant in the Earth’s atmosphere?',
-    optionA: 'Oxygen',
-    optionB: 'Carbon Dioxide',
-    optionC: 'Nitrogen',
-    optionD: 'Argon',
-    correctAnswer: 'C',
-    explanation: 'Nitrogen accounts for approximately 78% of Earth’s atmosphere.',
-    category: 'Science',
-    difficulty: 'Medium',
-    status: 'active',
-    createdAt: new Date().toISOString()
+    createdAt: '2025-01-01T00:01:00.000Z'
   }
 ];
 

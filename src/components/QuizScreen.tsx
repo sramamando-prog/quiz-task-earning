@@ -38,6 +38,7 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({ onBack, onOpenWallet }) 
     async function loadQuizQuestions() {
       try {
         setLoading(true);
+        // Only load active questions (draft/inactive excluded)
         const q = query(collection(db, 'quizQuestions'), where('status', '==', 'active'));
         const snap = await getDocs(q);
         const list: QuizQuestion[] = [];
@@ -45,9 +46,9 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({ onBack, onOpenWallet }) 
           list.push({ id: doc.id, ...(doc.data() as any) });
         });
         
-        // Shuffle questions for freshness
-        const shuffled = list.sort(() => Math.random() - 0.5);
-        setQuestions(shuffled);
+        // Sort questions newest first (createdAt DESC) so latest published questions appear first
+        list.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+        setQuestions(list);
       } catch (err: any) {
         console.error('Failed to load questions:', err);
         setErrorMessage('Failed to load quiz questions. Please check your connection.');
@@ -97,8 +98,7 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({ onBack, onOpenWallet }) 
     if (currentIndex + 1 < questions.length) {
       setCurrentIndex((prev) => prev + 1);
     } else {
-      // Re-shuffle when reached end
-      setQuestions((prev) => [...prev].sort(() => Math.random() - 0.5));
+      // Loop back to latest question
       setCurrentIndex(0);
     }
   };

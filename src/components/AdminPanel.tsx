@@ -127,6 +127,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToApp }) => {
     const unsubQuestions = onSnapshot(collection(db, 'quizQuestions'), (snap) => {
       const list: QuizQuestion[] = [];
       snap.forEach((d) => list.push({ id: d.id, ...(d.data() as any) }));
+      list.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
       setQuestions(list);
     });
 
