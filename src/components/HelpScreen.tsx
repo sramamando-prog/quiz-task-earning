@@ -10,7 +10,8 @@ import {
   ShieldCheck, 
   Coins, 
   CreditCard, 
-  Share2 
+  Share2,
+  User
 } from 'lucide-react';
 import { db } from '../firebase';
 import { collection, addDoc } from 'firebase/firestore';
@@ -18,9 +19,10 @@ import { useAuth } from '../context/AuthContext';
 
 interface HelpScreenProps {
   onBack: () => void;
+  onOpenProfile?: () => void;
 }
 
-export const HelpScreen: React.FC<HelpScreenProps> = ({ onBack }) => {
+export const HelpScreen: React.FC<HelpScreenProps> = ({ onBack, onOpenProfile }) => {
   const { user, profile } = useAuth();
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [subject, setSubject] = useState('');
@@ -88,7 +90,18 @@ export const HelpScreen: React.FC<HelpScreenProps> = ({ onBack }) => {
           <span>Dashboard</span>
         </button>
         <span className="text-sm font-bold text-slate-800">Help & Support</span>
-        <div className="w-8" />
+        {onOpenProfile ? (
+          <button
+            onClick={onOpenProfile}
+            className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-[11px] font-bold transition flex items-center gap-1 cursor-pointer"
+            title="Profile & Authentication Menu"
+          >
+            <User className="w-3.5 h-3.5 text-indigo-600" />
+            <span>Profile</span>
+          </button>
+        ) : (
+          <div className="w-8" />
+        )}
       </div>
 
       {/* Hero */}

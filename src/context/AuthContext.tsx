@@ -6,7 +6,9 @@ import {
   createUserWithEmailAndPassword, 
   signOut, 
   sendPasswordResetEmail,
-  signInWithPopup
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult
 } from 'firebase/auth';
 import { 
   doc, 
@@ -20,7 +22,7 @@ import {
   runTransaction,
   serverTimestamp 
 } from 'firebase/firestore';
-import { auth, db, googleProvider, isAuthorizedAdmin } from '../firebase';
+import { auth, db, createUserGoogleProvider, isAuthorizedAdmin } from '../firebase';
 import { UserProfile, WalletTransaction, ReferralRecord } from '../types';
 
 interface AuthContextType {
@@ -31,6 +33,7 @@ interface AuthContextType {
   loginWithEmail: (email: string, pass: string) => Promise<void>;
   signupWithEmail: (name: string, email: string, pass: string, phone: string, refCode?: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
+  loginWithAdminGoogle: () => Promise<boolean>;
   resetPassword: (email: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -53,9 +56,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Sync profile when auth state changes
+  // Sync profile when auth state changes and process redirect credentials if returning from redirect
   useEffect(() => {
     let unsubscribeProfile: (() => void) | null = null;
+
+    // Check if user returned from mobile Google redirect flow
+    getRedirectResult(auth).catch((err) => {
+      // Suppress or log redirect errors
+      console.warn('Redirect auth result warning:', err);
+    });
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
@@ -219,7 +228,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const loginWithGoogle = async () => {
-    await signInWithPopup(auth, googleProvider);
+    // Generate fresh provider with select_account to guarantee that normal users
+    // are prompted with Google's account chooser and never forced into an existing admin session.
+    const provider = createUserGoogleProvider();
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (popupErr: any) {
+      // If popup is blocked by the mobile browser, automatically fallback to signInWithRedirect
+      if (
+        popupErr.code === 'auth/popup-blocked' ||
+        popupErr.code === 'auth/cancelled-popup-request'
+      ) {
+        await signInWithRedirect(auth, provider);
+        return;
+      }
+      throw popupErr;
+    }
+  };
+
+  /**
+   * Admin-specific Google Sign-In flow:
+   * Opens Google account selector and validates whether the authenticated user
+   * possesses verified admin authority. Returns boolean indicating authorization status.
+   */
+  const loginWithAdminGoogle = async (): Promise<boolean> => {
+    const provider = createUserGoogleProvider();
+    try {
+      const cred = await signInWithPopup(auth, provider);
+      const authedEmail = cred.user.email;
+      const authorized = isAuthorizedAdmin(authedEmail);
+      return Boolean(authorized);
+    } catch (popupErr: any) {
+      if (
+        popupErr.code === 'auth/popup-blocked' ||
+        popupErr.code === 'auth/cancelled-popup-request'
+      ) {
+        await signInWithRedirect(auth, provider);
+        return false;
+      }
+      throw popupErr;
+    }
   };
 
   const resetPassword = async (email: string) => {
@@ -239,7 +287,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const isAdmin = Boolean(profile?.isAdmin || isAuthorizedAdmin(user?.email));
+  // Secure Admin Authorization Check:
+  // Strictly enforce that the user's verified authenticated email matches the authorized admin account.
+  // Never grant admin access simply based on an untrusted or client-mutable profile document property.
+  const isAdmin = Boolean(isAuthorizedAdmin(user?.email));
 
   return (
     <AuthContext.Provider
@@ -251,6 +302,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loginWithEmail,
         signupWithEmail,
         loginWithGoogle,
+        loginWithAdminGoogle,
         resetPassword,
         logout,
         refreshProfile

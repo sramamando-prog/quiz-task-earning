@@ -29,9 +29,10 @@ import { AdMobBanner } from './AdMobBanner';
 
 interface HomeScreenProps {
   onNavigate: (tab: 'home' | 'quiz' | 'tasks' | 'deposit' | 'refer' | 'wallet' | 'withdraw' | 'help' | 'admin') => void;
+  onOpenProfile?: () => void;
 }
 
-export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
+export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, onOpenProfile }) => {
   const { user, profile, isAdmin, logout } = useAuth();
   const [recentTransactions, setRecentTransactions] = useState<WalletTransaction[]>([]);
   const [loadingTx, setLoadingTx] = useState(true);
@@ -77,6 +78,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
         </div>
 
         <div className="flex items-center gap-1.5">
+          {onOpenProfile && (
+            <button
+              onClick={onOpenProfile}
+              className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-[11px] font-bold transition flex items-center gap-1 cursor-pointer"
+              title="Profile & Authentication Menu"
+            >
+              <User className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Profile</span>
+            </button>
+          )}
+
           {isAdmin && (
             <button
               onClick={() => onNavigate('admin')}

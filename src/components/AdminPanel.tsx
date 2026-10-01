@@ -20,6 +20,7 @@ import {
   DepositRequest
 } from '../types';
 import { approveWithdrawal, rejectWithdrawal, confirmDeposit, rejectDeposit } from '../services/walletService';
+import { seedInitialDataIfEmpty } from '../services/seedData';
 import { 
   Users, 
   HelpCircle, 
@@ -164,8 +165,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToApp }) => {
           </div>
           <h2 className="text-xl font-bold text-slate-900 mb-2">Access Denied</h2>
           <p className="text-sm text-slate-600 mb-6 leading-relaxed">
-            This account ({user?.email || 'Guest'}) is not authorized as an administrator.
-            Only verified owner credentials have administrative clearance.
+            Access Denied: You are not authorized to access the Admin Panel.
           </p>
           <div className="flex gap-3">
             <button
@@ -873,13 +873,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToApp }) => {
                   Manage questions shown to users. Correct answers reward ₹1, wrong answers deduct ₹1.
                 </p>
               </div>
-              <button
-                onClick={() => { resetQuestionForm(); setEditingQuestion(null); setShowQuestionModal(true); }}
-                className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm transition cursor-pointer"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Add Question</span>
-              </button>
+              <div className="flex items-center gap-2">
+                {questions.length === 0 && (
+                  <button
+                    onClick={() => seedInitialDataIfEmpty(true)}
+                    className="px-3.5 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Seed Samples</span>
+                  </button>
+                )}
+                <button
+                  onClick={() => { resetQuestionForm(); setEditingQuestion(null); setShowQuestionModal(true); }}
+                  className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add Question</span>
+                </button>
+              </div>
             </div>
 
             <div className="space-y-3">
@@ -967,13 +978,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onBackToApp }) => {
                   Publish earning tasks with custom rewards and instructions for users.
                 </p>
               </div>
-              <button
-                onClick={() => { resetTaskForm(); setEditingTask(null); setShowTaskModal(true); }}
-                className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm transition cursor-pointer"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Add Task</span>
-              </button>
+              <div className="flex items-center gap-2">
+                {tasks.length === 0 && (
+                  <button
+                    onClick={() => seedInitialDataIfEmpty(true)}
+                    className="px-3.5 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Seed Samples</span>
+                  </button>
+                )}
+                <button
+                  onClick={() => { resetTaskForm(); setEditingTask(null); setShowTaskModal(true); }}
+                  className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add Task</span>
+                </button>
+              </div>
             </div>
 
             <div className="space-y-3">

@@ -1,5 +1,5 @@
 import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, auth, isAuthorizedAdmin } from '../firebase';
 import { QuizQuestion, EarningTask } from '../types';
 
 export const INITIAL_QUESTIONS: Omit<QuizQuestion, 'id'>[] = [
@@ -67,8 +67,18 @@ export const INITIAL_TASKS: Omit<EarningTask, 'id'>[] = [
   }
 ];
 
-export async function seedInitialDataIfEmpty() {
+export async function seedInitialDataIfEmpty(forceSeedFromAdmin: boolean = false) {
   try {
+    // Only attempt seeding if explicitly triggered by the Admin or if the current session is the authorized admin.
+    // In Firestore rules, quizQuestions and tasks collections are strictly writable by Admin only.
+    const currentUser = auth.currentUser;
+    const isCurrentAdmin = isAuthorizedAdmin(currentUser?.email);
+
+    if (!isCurrentAdmin && !forceSeedFromAdmin) {
+      // Normal unauthenticated or non-admin users should not attempt writing to admin-only collections
+      return;
+    }
+
     const qSnap = await getDocs(collection(db, 'quizQuestions'));
     if (qSnap.empty) {
       for (const q of INITIAL_QUESTIONS) {
@@ -84,7 +94,11 @@ export async function seedInitialDataIfEmpty() {
         await setDoc(docRef, { ...t, id: docRef.id });
       }
     }
-  } catch (err) {
+  } catch (err: any) {
+    // Suppress permission noise gracefully if rules restrict client write
+    if (err?.code === 'permission-denied' || err?.message?.includes('Missing or insufficient permissions')) {
+      return;
+    }
     console.error('Seeding initial data error:', err);
   }
 }

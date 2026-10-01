@@ -17,6 +17,9 @@ import { AdminPanel } from './components/AdminPanel';
 import { BottomNav } from './components/BottomNav';
 import { seedInitialDataIfEmpty } from './services/seedData';
 import { initializeNativeAdMob, removeNativeBannerAd } from './services/admobService';
+import { NetworkStatusToast } from './components/NetworkStatusToast';
+import { ProfileModal } from './components/ProfileModal';
+import { AdminLoginModal } from './components/AdminLoginModal';
 import { App as CapacitorApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Capacitor } from '@capacitor/core';
@@ -33,13 +36,18 @@ type AppScreen =
   | 'admin';
 
 function MainApp() {
-  const { user, loading } = useAuth();
+  const { user, loading, isAdmin } = useAuth();
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('home');
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showUserAuthModal, setShowUserAuthModal] = useState(false);
+  const [showAdminLoginModal, setShowAdminLoginModal] = useState(false);
 
-  // Seed default questions & tasks if empty in Firebase
+  // Seed default questions & tasks if empty in Firebase (Admin only)
   useEffect(() => {
-    seedInitialDataIfEmpty();
-  }, []);
+    if (isAdmin) {
+      seedInitialDataIfEmpty(true);
+    }
+  }, [isAdmin]);
 
   // Initialize native Google Mobile Ads when user is authenticated
   useEffect(() => {
@@ -87,12 +95,30 @@ function MainApp() {
 
   // If user is not authenticated, show signin / signup / forgot modal
   if (!user) {
-    return <AuthModal />;
+    return (
+      <>
+        <NetworkStatusToast />
+        <AuthModal onSwitchToAdmin={() => setShowAdminLoginModal(true)} />
+        <AdminLoginModal
+          isOpen={showAdminLoginModal}
+          onClose={() => setShowAdminLoginModal(false)}
+          onSuccess={() => {
+            setShowAdminLoginModal(false);
+            setCurrentScreen('admin');
+          }}
+        />
+      </>
+    );
   }
 
   // Admin panel view
   if (currentScreen === 'admin') {
-    return <AdminPanel onBackToApp={() => setCurrentScreen('home')} />;
+    return (
+      <>
+        <NetworkStatusToast />
+        <AdminPanel onBackToApp={() => setCurrentScreen('home')} />
+      </>
+    );
   }
 
   // Determine active tab for fixed bottom nav
@@ -108,9 +134,47 @@ function MainApp() {
 
   return (
     <div className="min-h-screen bg-slate-50/70 font-sans text-slate-900 selection:bg-indigo-100 selection:text-indigo-900 antialiased">
+      {/* Network Status & Firebase Reconnection Indicator */}
+      <NetworkStatusToast />
+
+      {/* Profile Menu Modal */}
+      <ProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        onOpenUserAuth={() => setShowUserAuthModal(true)}
+        onOpenAdminAuth={() => setShowAdminLoginModal(true)}
+        onOpenAdminPanel={() => setCurrentScreen('admin')}
+      />
+
+      {/* Admin Panel Login Modal */}
+      <AdminLoginModal
+        isOpen={showAdminLoginModal}
+        onClose={() => setShowAdminLoginModal(false)}
+        onSuccess={() => {
+          setShowAdminLoginModal(false);
+          setCurrentScreen('admin');
+        }}
+      />
+
+      {/* User Login/Sign Up Modal (when triggered via Profile Menu) */}
+      {showUserAuthModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <AuthModal 
+            onClose={() => setShowUserAuthModal(false)} 
+            onSwitchToAdmin={() => {
+              setShowUserAuthModal(false);
+              setShowAdminLoginModal(true);
+            }}
+          />
+        </div>
+      )}
+
       {/* Screen Routing */}
       {currentScreen === 'home' && (
-        <HomeScreen onNavigate={(screen) => setCurrentScreen(screen)} />
+        <HomeScreen 
+          onNavigate={(screen) => setCurrentScreen(screen)} 
+          onOpenProfile={() => setShowProfileModal(true)}
+        />
       )}
 
       {currentScreen === 'deposit' && (
@@ -155,7 +219,10 @@ function MainApp() {
       )}
 
       {currentScreen === 'help' && (
-        <HelpScreen onBack={() => setCurrentScreen('home')} />
+        <HelpScreen 
+          onBack={() => setCurrentScreen('home')} 
+          onOpenProfile={() => setShowProfileModal(true)}
+        />
       )}
 
       {/* Fixed Bottom Navigation (visible on mobile/tablet during main screens) */}
