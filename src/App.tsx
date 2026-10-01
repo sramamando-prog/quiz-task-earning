@@ -16,6 +16,10 @@ import { HelpScreen } from './components/HelpScreen';
 import { AdminPanel } from './components/AdminPanel';
 import { BottomNav } from './components/BottomNav';
 import { seedInitialDataIfEmpty } from './services/seedData';
+import { initializeNativeAdMob, removeNativeBannerAd } from './services/admobService';
+import { App as CapacitorApp } from '@capacitor/app';
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { Capacitor } from '@capacitor/core';
 
 type AppScreen = 
   | 'home' 
@@ -36,6 +40,40 @@ function MainApp() {
   useEffect(() => {
     seedInitialDataIfEmpty();
   }, []);
+
+  // Initialize native Google Mobile Ads when user is authenticated
+  useEffect(() => {
+    if (user && currentScreen !== 'admin') {
+      initializeNativeAdMob().catch(() => {});
+    } else if (currentScreen === 'admin') {
+      // Strictly prevent ads from ever appearing in the Admin Panel
+      removeNativeBannerAd().catch(() => {});
+    }
+  }, [user, currentScreen]);
+
+  // Handle Android Native hardware back button & status bar
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
+    try {
+      StatusBar.setStyle({ style: Style.Light }).catch(() => {});
+      StatusBar.setBackgroundColor({ color: '#4338ca' }).catch(() => {});
+    } catch (e) {}
+
+    const backListener = CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+      // If user is on a sub-screen, pressing back takes them to home
+      if (currentScreen !== 'home') {
+        setCurrentScreen('home');
+      } else {
+        // If already on home, minimize/exit app
+        CapacitorApp.exitApp();
+      }
+    });
+
+    return () => {
+      backListener.then((l) => l.remove()).catch(() => {});
+    };
+  }, [currentScreen]);
 
   if (loading) {
     return (

@@ -17,6 +17,7 @@ import {
   Info
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { recordUserQuizAction, showAdMobInterstitial } from '../services/admobService';
 
 interface QuizScreenProps {
   onBack: () => void;
@@ -95,6 +96,12 @@ export const QuizScreen: React.FC<QuizScreenProps> = ({ onBack, onOpenWallet }) 
     setSelectedOption(null);
     setResult(null);
     setErrorMessage(null);
+
+    // Natural transition checkpoint: check if interstitial ad can be shown (after cooldown & threshold)
+    if (recordUserQuizAction()) {
+      showAdMobInterstitial();
+    }
+
     if (currentIndex + 1 < questions.length) {
       setCurrentIndex((prev) => prev + 1);
     } else {

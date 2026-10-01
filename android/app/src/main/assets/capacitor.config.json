@@ -1,0 +1,13 @@
+{
+	"appId": "com.quizearning.app",
+	"appName": "Quiz Earning Task",
+	"webDir": "dist",
+	"server": {
+		"androidScheme": "https"
+	},
+	"plugins": {
+		"AdMob": {
+			"appId": "ca-app-pub-9895846279260256~XXXXXXXXXX"
+		}
+	}
+}

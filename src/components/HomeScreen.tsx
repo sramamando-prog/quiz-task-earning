@@ -25,6 +25,7 @@ import {
   Phone,
   PlusCircle
 } from 'lucide-react';
+import { AdMobBanner } from './AdMobBanner';
 
 interface HomeScreenProps {
   onNavigate: (tab: 'home' | 'quiz' | 'tasks' | 'deposit' | 'refer' | 'wallet' | 'withdraw' | 'help' | 'admin') => void;
@@ -155,6 +156,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
           </div>
         </div>
       </div>
+
+      {/* Google AdMob Banner Ad (ca-app-pub-9895846279260256/3710345919) */}
+      <AdMobBanner placement="home" />
 
       {/* MAIN CARDS GRID */}
       <div className="space-y-3.5 mb-6">

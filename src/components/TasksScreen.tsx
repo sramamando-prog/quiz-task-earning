@@ -15,6 +15,7 @@ import {
   HelpCircle
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { recordUserQuizAction, showAdMobInterstitial } from '../services/admobService';
 
 interface TasksScreenProps {
   onBack: () => void;
@@ -79,6 +80,11 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ onBack, onOpenWallet }
       setMessage(res.message);
       setCompletedTaskIds((prev) => new Set([...prev, taskId]));
       confetti({ particleCount: 40, spread: 60, origin: { y: 0.6 } });
+
+      // Natural transition checkpoint: check if interstitial ad can be shown
+      if (recordUserQuizAction()) {
+        showAdMobInterstitial();
+      }
     } catch (err: any) {
       console.error(err);
       setError(err.message || 'Failed to claim task reward.');
